@@ -1,0 +1,5 @@
+name = "Fish"
+grammar = "fish"
+path_suffixes = ["fish"]
+first_line_pattern = "^#!.*\\bfish\\b"
+line_comments = ["# "]
