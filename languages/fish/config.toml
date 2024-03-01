@@ -3,3 +3,10 @@ grammar = "fish"
 path_suffixes = ["fish"]
 first_line_pattern = "^#!.*\\bfish\\b"
 line_comments = ["# "]
+brackets = [
+    { start = "{", end = "}", close = false, newline = false },
+    { start = "[", end = "]", close = false, newline = false },
+    { start = "(", end = ")", close = false, newline = false },
+]
+increase_indent_pattern = "^\\s*((\\b(else|function|if|while|for|switch|case|begin)\\b((?!\\b(end)\\b).)*)|(\\(\\s*))$|\\\\$"
+decrease_indent_pattern = "^\\s*((\\b(else|case|end)\\b)|(\\)))"
