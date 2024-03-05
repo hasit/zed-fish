@@ -16,3 +16,11 @@ brackets = [
         "string",
     ] },
 ]
+
+# Indent if the line starts with a keyword that must be followed by one or more parameters *or*
+# if the line starts and ends with `begin` or `else` *or*
+# if the line ends with an opening parentheses or a backslash.
+increase_indent_pattern = "^\\s*(function|if|else\\s+if|while|for|switch|case)\\b|^\\s*(begin|else)\\s*$|[(\\\\]\\s*$"
+
+# Dedent if the line starts with a keyword that ends a block or with a closing parentheses.
+decrease_indent_pattern = "^\\s*(else|case|end)\\b|^\\s*\\)"
