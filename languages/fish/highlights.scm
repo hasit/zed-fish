@@ -6,6 +6,10 @@
 [(integer) (float)] @number
 
 [
+  "not"
+  "!"
+  "and"
+  "or"
   "&&"
   "||"
   "|"
@@ -52,10 +56,6 @@
  "end"
  "while"
  "for"
- "not"
- "!"
- "and"
- "or"
  "return"
  (break)
  (continue)
