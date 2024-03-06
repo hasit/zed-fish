@@ -14,7 +14,6 @@
   "||"
   "|"
   "&"
-  ".."
   (direction)
   (stream_redirect)
 ] @operator
@@ -29,11 +28,9 @@
   name: (word) @punctuation.bracket (#match? @punctuation.bracket "^\\[$")
   argument: (word) @operator (#match? @operator "^(!?=|-[a-zA-Z]+)$"))
 
-(variable_expansion) @constant
+[(variable_expansion) (list_element_access)] @constant
 
 [
- "["
- "]"
  "{"
  "}"
  "("
