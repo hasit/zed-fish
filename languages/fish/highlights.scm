@@ -30,14 +30,12 @@
 
 [(variable_expansion) (list_element_access)] @constant
 
-[
- "{"
- "}"
- "("
- ")"
-] @punctuation.bracket
+(command_substitution ["$" "(" ")"]) @punctuation.bracket
 
-"," @punctuation.delimiter
+; Brace expansion and globbing.
+; Note: (glob) matches "*" but not "?". It's in the grammar and we can't
+; query it differently.
+["{" "}" "," (home_dir_expansion) (glob)] @operator
 
 (function_definition name: [(word) (concatenation)] @function)
 (command name: (word) @function)
