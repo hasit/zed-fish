@@ -37,21 +37,31 @@
 ; query it differently.
 ["{" "}" "," (home_dir_expansion) (glob)] @operator
 
-(function_definition name: [(word) (concatenation)] @function)
-(command name: (word) @function)
+; Conditionals
+(if_statement ["if" "end"] @keyword)
+(switch_statement ["switch" "end"] @keyword)
+(case_clause ["case"] @keyword)
+(else_clause ["else"] @keyword)
+(else_if_clause ["else" "if"] @keyword)
 
+; Loops/Blocks
+(while_statement ["while" "end"] @keyword)
+(for_statement ["for" "end"] @keyword)
+(begin_statement ["begin" "end"] @keyword)
+
+; Functions
+(function_definition ["function" "end"] @keyword)
+
+; Keywords
 [
- "switch"
- "case"
  "in"
- "begin"
- "function"
- "if"
- "else"
- "end"
- "while"
- "for"
+ ";"
  "return"
  (break)
  (continue)
 ] @keyword
+
+; Treat "&" as a background operator only if it's preceded by a command.
+; Note that an expression like `echo _&_` contains a background operator
+; prior to fish 3.5 and that's how it's handled here.
+((command) "&" @keyword)
