@@ -108,3 +108,7 @@
     (concatenation (word) @constant (#match? @constant "^-"))
     (concatenation ("#" @comment _* @comment))
 ])
+
+
+;; Error
+(ERROR) @hint
