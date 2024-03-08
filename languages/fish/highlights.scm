@@ -14,19 +14,19 @@
   "||"
   "|"
   "&"
-  (direction)
+  (file_redirect)
   (stream_redirect)
 ] @operator
 
 ; match operators of test command
-(command
-  name: (word) @function (#match? @function "^test$")
-  argument: (word) @operator (#match? @operator "^(!?=|-[a-zA-Z]+)$"))
+; (command
+;   name: (word) @function (#match? @function "^test$")
+;   argument: (word) @operator (#match? @operator "^(!?=|-[a-zA-Z]+)$"))
 
 ; match operators of [ command
-(command
-  name: (word) @punctuation.bracket (#match? @punctuation.bracket "^\\[$")
-  argument: (word) @operator (#match? @operator "^(!?=|-[a-zA-Z]+)$"))
+; (command
+;   name: (word) @punctuation.bracket (#match? @punctuation.bracket "^\\[$")
+;   argument: (word) @operator (#match? @operator "^(!?=|-[a-zA-Z]+)$"))
 
 [(variable_expansion) (list_element_access)] @constant
 
@@ -46,20 +46,14 @@
 
 ; Loops/Blocks
 (while_statement ["while" "end"] @keyword)
-(for_statement ["for" "end"] @keyword)
+(for_statement ["for" "in" "end"] @keyword)
 (begin_statement ["begin" "end"] @keyword)
 
 ; Functions
 (function_definition ["function" "end"] @keyword)
 
 ; Keywords
-[
- "in"
- ";"
- "return"
- (break)
- (continue)
-] @keyword
+[";" (return) (break) (continue)] @keyword
 
 ; Treat "&" as a background operator only if it's preceded by a command.
 ; Note that an expression like `echo _&_` contains a background operator
@@ -98,14 +92,14 @@
 (command name: [
     ((word) @function)
     (concatenation . (word) @function)
-    (concatenation (word) @constant (#match? @constant "^-"))
+    (concatenation (word) @primary (#match? @primary "^-."))
     (concatenation ("#" @comment _* @comment))
 ])
 
 (function_definition name: [
     ((word) @function)
     (concatenation . (word) @function)
-    (concatenation (word) @constant (#match? @constant "^-"))
+    (concatenation (word) @primary (#match? @primary "^-."))
     (concatenation ("#" @comment _* @comment))
 ])
 
