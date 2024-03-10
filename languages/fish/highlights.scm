@@ -92,14 +92,14 @@
 (command name: [
     ((word) @function)
     (concatenation . (word) @function)
-    (concatenation (word) @primary (#match? @primary "^-."))
+    (concatenation (word) @constant (#match? @constant "^-."))
     (concatenation ("#" @comment _* @comment))
 ])
 
 (function_definition name: [
     ((word) @function)
     (concatenation . (word) @function)
-    (concatenation (word) @primary (#match? @primary "^-."))
+    (concatenation (word) @constant (#match? @constant "^-."))
     (concatenation ("#" @comment _* @comment))
 ])
 
