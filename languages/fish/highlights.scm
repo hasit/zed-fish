@@ -33,7 +33,7 @@
 
 [(variable_expansion) (list_element_access)] @variable.special
 
-(command_substitution ["$" "(" ")"]) @punctuation.bracket
+(command_substitution ["$" "(" ")"]) @embedded
 
 ; Brace expansion and globbing.
 ; Note: (glob) matches "*" but not "?".
