@@ -12,24 +12,27 @@
   "or"
   "&&"
   "||"
-  "|"
-  "&"
   (file_redirect)
   (stream_redirect)
 ] @operator
 
+; Operators that end a command
+(pipe ["|" "2>|" "&|"] @keyword)
+[";" "&"] @keyword
+
+; Commands
 (command name: (word) @function)
 (command argument: (word) @constant (#match? @constant "^-."))
 
 ; match operators of test command
 (command
-  name: (word) @function (#match? @function "^test$")
-  argument: (word) @constant (#match? @constant "^(!?=|!)$"))
+  name: (word) @function (#eq? @function "test")
+  argument: (word) @constant (#match? @constant "^(-[A-Za-z]+|!?=|!)$"))
 
 ; match operators of [ command
 (command
-  name: (word) @punctuation.bracket (#match? @punctuation.bracket "^\\[$")
-  argument: (word) @constant (#match? @constant "^(!?=|!)$"))
+  name: (word) @punctuation.bracket (#eq? @punctuation.bracket "[")
+  argument: (word) @constant (#match? @constant "^(-[A-Za-z]+|!?=|!)$"))
 
 [(variable_expansion) (list_element_access)] @variable.special
 
@@ -53,9 +56,10 @@
 
 ; Functions
 (function_definition ["function" "end"] @keyword)
+(function_definition option: (word) @constant (#match? @constant "^-."))
 
 ; Keywords
-[";" (return) (break) (continue)] @keyword
+[(return) (break) (continue)] @keyword
 
-;; Error
+; Errors
 (ERROR) @hint
