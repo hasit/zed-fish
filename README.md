@@ -6,3 +6,4 @@ Fish language support in Zed
 
 - [vscode-fish](https://github.com/bmalehorn/vscode-fish)
 - [tree-sitter-fish](https://github.com/ram02z/tree-sitter-fish)
+- [fish-lsp](https://github.com/ndonfris/fish-lsp)
