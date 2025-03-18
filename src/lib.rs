@@ -13,9 +13,16 @@ impl FishExtension {
         fs::metadata(SERVER_PATH).map_or(false, |stat| stat.is_file())
     }
 
-    fn server_script_path(&mut self, language_server_id: &zed::LanguageServerId) -> Result<String> {
-        let server_exists = self.server_exists();
-        if self.did_find_server && server_exists {
+    fn server_path(
+        &mut self,
+        language_server_id: &zed::LanguageServerId,
+        worktree: &zed::Worktree,
+    ) -> Result<String> {
+        if let Some(path) = worktree.which("fish-lsp") {
+            return Ok(path);
+        }
+
+        if self.did_find_server && self.server_exists() {
             return Ok(SERVER_PATH.to_string());
         }
 
@@ -25,7 +32,7 @@ impl FishExtension {
         );
         let version = zed::npm_package_latest_version(PACKAGE_NAME)?;
 
-        if !server_exists
+        if !self.server_exists()
             || zed::npm_package_installed_version(PACKAGE_NAME)?.as_ref() != Some(&version)
         {
             zed::set_language_server_installation_status(
@@ -64,9 +71,9 @@ impl zed::Extension for FishExtension {
     fn language_server_command(
         &mut self,
         language_server_id: &zed::LanguageServerId,
-        _worktree: &zed::Worktree,
+        worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
-        let server_path = self.server_script_path(language_server_id)?;
+        let server_path = self.server_path(language_server_id, worktree)?;
         Ok(zed::Command {
             command: zed::node_binary_path()?,
             args: vec![
