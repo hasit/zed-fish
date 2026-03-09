@@ -24,3 +24,6 @@ increase_indent_pattern = "^\\s*(function|if|else\\s+if|while|for|switch|case)\\
 
 # Dedent if the line starts with a keyword that ends a block or with a closing parentheses.
 decrease_indent_pattern = "^\\s*(else|case|end)\\b|^\\s*\\)"
+
+[formatter]
+external = { command = "fish_indent", arguments = [] }
