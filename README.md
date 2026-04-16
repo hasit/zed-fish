@@ -17,7 +17,7 @@ for the current version when the tag does not exist yet.
 If you need to do the same thing manually, run:
 
 ```sh
-version="$(sed -nE 's/^version = \"([^\"]+)\"$/\\1/p' extension.toml | head -n1)"
+version="$(sed -nE 's/^version = "([^"]+)"$/\1/p' extension.toml | head -n1)"
 git tag "v$version"
 git push origin "v$version"
 gh release create "v$version" --generate-notes
