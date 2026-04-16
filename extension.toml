@@ -8,4 +8,4 @@ repository = "https://github.com/hasit/zed-fish"
 
 [grammars.fish]
 repository = "https://github.com/ram02z/tree-sitter-fish"
-commit = "a78aef9abc395c600c38a037ac779afc7e3cc9e0"
+commit = "f435b0bd772578c70e5d158b85267bb886316f88"
