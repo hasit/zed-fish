@@ -23,6 +23,7 @@
 ; Commands
 (command name: (word) @function)
 (command argument: (word) @constant (#match? @constant "^-."))
+(command argument: (concatenation . (word) @constant (#match? @constant "^-.")))
 
 ; match operators of test command
 (command
@@ -57,6 +58,7 @@
 ; Functions
 (function_definition ["function" "end"] @keyword)
 (function_definition option: (word) @constant (#match? @constant "^-."))
+(function_definition option: (concatenation . (word) @constant (#match? @constant "^-.")))
 
 ; Keywords
 [(return) (break) (continue)] @keyword
