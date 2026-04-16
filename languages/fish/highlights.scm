@@ -1,3 +1,8 @@
+; Explicitly use the primary editor foreground color for words.
+; This is required for words (e.g., a file path) inside command substitutions
+; that are wrapped in double-quoted strings.
+(word) @primary
+
 [(double_quote_string) (single_quote_string)] @string
 (escape_sequence) @string.escape
 
@@ -37,7 +42,7 @@
 
 [(variable_expansion) (list_element_access)] @variable.special
 
-(command_substitution ["$" "(" ")"]) @embedded
+(command_substitution "$" @punctuation.special)
 
 ; Brace expansion and globbing.
 ; Note: (glob) matches "*" but not "?".
