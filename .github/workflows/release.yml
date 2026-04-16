@@ -1,0 +1,120 @@
+name: Release on version bump
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - extension.toml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect version bump
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          parse_version() {
+            sed -nE 's/^version = "([^"]+)"$/\1/p' "$1" | head -n1
+          }
+
+          current_version="$(parse_version extension.toml)"
+          if [ -z "$current_version" ]; then
+            echo "Could not parse version from extension.toml" >&2
+            exit 1
+          fi
+
+          previous_version=""
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            if git cat-file -e "${{ github.event.before }}:extension.toml" 2>/dev/null; then
+              previous_version="$(
+                git show "${{ github.event.before }}:extension.toml" \
+                  | sed -nE 's/^version = "([^"]+)"$/\1/p' \
+                  | head -n1
+              )"
+            fi
+          fi
+
+          tag="v${current_version}"
+          bumped="false"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$current_version" != "$previous_version" ]; then
+            bumped="true"
+          fi
+
+          tag_exists="false"
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            tag_exists="true"
+          fi
+
+          echo "version=$current_version" >> "$GITHUB_OUTPUT"
+          echo "previous_version=$previous_version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "bumped=$bumped" >> "$GITHUB_OUTPUT"
+          echo "tag_exists=$tag_exists" >> "$GITHUB_OUTPUT"
+
+      - name: Skip when version did not change
+        if: steps.version.outputs.bumped != 'true'
+        run: echo "No version bump detected in extension.toml"
+
+      - name: Skip when tag already exists
+        if: steps.version.outputs.bumped == 'true' && steps.version.outputs.tag_exists == 'true'
+        run: echo "${{ steps.version.outputs.tag }} already exists; skipping release"
+
+      - name: Create tag and GitHub release
+        if: steps.version.outputs.bumped == 'true' && steps.version.outputs.tag_exists != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = '${{ steps.version.outputs.tag }}';
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const sha = context.sha;
+
+            try {
+              await github.rest.git.createRef({
+                owner,
+                repo,
+                ref: `refs/tags/${tag}`,
+                sha,
+              });
+              core.info(`Created tag ${tag}`);
+            } catch (error) {
+              if (error.status !== 422) {
+                throw error;
+              }
+              core.info(`Tag ${tag} already exists`);
+            }
+
+            try {
+              await github.rest.repos.createRelease({
+                owner,
+                repo,
+                tag_name: tag,
+                target_commitish: sha,
+                name: tag,
+                generate_release_notes: true,
+              });
+              core.info(`Created release ${tag}`);
+            } catch (error) {
+              if (error.status !== 422) {
+                throw error;
+              }
+              core.info(`Release ${tag} already exists`);
+            }
