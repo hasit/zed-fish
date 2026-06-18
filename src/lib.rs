@@ -64,24 +64,36 @@ impl Fish {
     fn ensure_install_npm_language_server_binary(
         language_server_id: &zed::LanguageServerId,
     ) -> Result<()> {
-        let installed_version = &zed::npm_package_installed_version(BINARY_NAME)?;
-        let latest_version = &zed::npm_package_latest_version(BINARY_NAME)?;
-
-        if installed_version.is_none() {
-            Fish::install_npm_language_server(language_server_id, latest_version)?;
-            return Ok(());
-        }
-
         zed::set_language_server_installation_status(
             language_server_id,
             &zed::LanguageServerInstallationStatus::CheckingForUpdate,
         );
 
-        if let Some(installed) = installed_version
-            && installed != latest_version
-        {
-            Fish::install_npm_language_server(language_server_id, latest_version)?;
+        let installed_version = zed::npm_package_installed_version(BINARY_NAME)?;
+        let latest_version = match zed::npm_package_latest_version(BINARY_NAME) {
+            Ok(version) => version,
+            Err(_) if installed_version.is_some() && Fish::exists(NPM_SERVER_PATH) => {
+                zed::set_language_server_installation_status(
+                    language_server_id,
+                    &zed::LanguageServerInstallationStatus::None,
+                );
+                return Ok(());
+            }
+            Err(err) => return Err(err),
+        };
+
+        if installed_version.is_none() {
+            Fish::install_npm_language_server(language_server_id, &latest_version)?;
             return Ok(());
+        }
+
+        if installed_version.as_ref() != Some(&latest_version) {
+            if let Err(err) = Fish::install_npm_language_server(language_server_id, &latest_version)
+            {
+                if !Fish::exists(NPM_SERVER_PATH) {
+                    return Err(err);
+                }
+            }
         }
 
         zed::set_language_server_installation_status(
