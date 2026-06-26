@@ -7,8 +7,8 @@ const NPM_SERVER_PATH: &str = "node_modules/fish-lsp/dist/fish-lsp";
 struct Fish {}
 
 impl Fish {
-    /// Checks if a given file path exists.
-    fn exists(path: &str) -> bool {
+    /// Checks if a given file path exists and is a file.
+    fn is_file(path: &str) -> bool {
         fs::metadata(path).is_ok_and(|stat| stat.is_file())
     }
 
@@ -27,9 +27,7 @@ impl Fish {
         language_server_id: &zed::LanguageServerId,
         worktree: &zed::Worktree,
     ) -> Vec<String> {
-        let settings = Fish::get_server_settings(language_server_id, worktree);
-
-        settings
+        Self::get_server_settings(language_server_id, worktree)
             .binary
             .and_then(|binary| binary.arguments)
             .unwrap_or_else(|| vec!["start".to_owned()])
@@ -59,8 +57,8 @@ impl Fish {
             language_server_id,
             &zed::LanguageServerInstallationStatus::Downloading,
         );
-        let installation_err = zed::npm_install_package(BINARY_NAME, package_version).err();
-        if let Some(err) = installation_err {
+
+        if let Err(err) = zed::npm_install_package(BINARY_NAME, package_version) {
             zed::set_language_server_installation_status(
                 language_server_id,
                 &zed::LanguageServerInstallationStatus::Failed(err.clone()),
@@ -87,7 +85,7 @@ impl Fish {
         let installed_version = zed::npm_package_installed_version(BINARY_NAME)?;
         let latest_version = match zed::npm_package_latest_version(BINARY_NAME) {
             Ok(version) => version,
-            Err(_) if installed_version.is_some() && Fish::exists(NPM_SERVER_PATH) => {
+            Err(_) if installed_version.is_some() && Self::is_file(NPM_SERVER_PATH) => {
                 zed::set_language_server_installation_status(
                     language_server_id,
                     &zed::LanguageServerInstallationStatus::None,
@@ -98,14 +96,14 @@ impl Fish {
         };
 
         if installed_version.is_none() {
-            Fish::install_npm_language_server(language_server_id, &latest_version)?;
+            Self::install_npm_language_server(language_server_id, &latest_version)?;
             return Ok(());
         }
 
         if installed_version.as_ref() != Some(&latest_version) {
-            if let Err(err) = Fish::install_npm_language_server(language_server_id, &latest_version)
+            if let Err(err) = Self::install_npm_language_server(language_server_id, &latest_version)
             {
-                if !Fish::exists(NPM_SERVER_PATH) {
+                if !Self::is_file(NPM_SERVER_PATH) {
                     return Err(err);
                 }
             }
@@ -126,18 +124,19 @@ impl Fish {
     /// 2. `PATH` lookup for `fish-lsp`
     /// 3. Install `fish-lsp` from npm (see: `Fish::ensure_install_npm_language_server_binary`)
     fn find_language_server_binary(
-        &mut self,
         language_server_id: &zed::LanguageServerId,
         worktree: &zed::Worktree,
     ) -> Result<String> {
         if worktree.which("fish").is_none() {
-            return Err("fish-lsp requires the fish shell to be installed to function".to_string());
+            return Err(
+                "fish-lsp requires a `fish` (shell) binary to be present to function".to_string(),
+            );
         }
 
-        let settings = Fish::get_server_settings(language_server_id, worktree);
+        let settings = Self::get_server_settings(language_server_id, worktree);
 
         if let Some(path) = settings.binary.and_then(|binary| binary.path) {
-            if Fish::exists(&path) {
+            if Self::is_file(&path) {
                 return Ok(path);
             }
         }
@@ -146,12 +145,12 @@ impl Fish {
             return Ok(path);
         }
 
-        Fish::ensure_install_npm_language_server_binary(language_server_id)?;
-        if Fish::exists(NPM_SERVER_PATH) {
+        Self::ensure_install_npm_language_server_binary(language_server_id)?;
+        if Self::is_file(NPM_SERVER_PATH) {
             return Ok(NPM_SERVER_PATH.to_string());
         }
 
-        return Err("Couldn't locate `fish-lsp` language server binary.".to_string());
+        Err("Couldn't locate `fish-lsp` language server binary.".to_string())
     }
 }
 
@@ -166,8 +165,8 @@ impl zed::Extension for Fish {
         worktree: &zed::Worktree,
     ) -> Result<Command> {
         Ok(Command {
-            command: Fish::find_language_server_binary(self, language_server_id, worktree)?,
-            args: Fish::get_server_arguments(language_server_id, worktree),
+            command: Self::find_language_server_binary(language_server_id, worktree)?,
+            args: Self::get_server_arguments(language_server_id, worktree),
             env: Self::get_server_environment_variables(language_server_id, worktree),
         })
     }
