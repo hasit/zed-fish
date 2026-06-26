@@ -1,4 +1,4 @@
-use std::fs;
+use std::{collections::HashMap, fs};
 use zed_extension_api::{self as zed, Result, process::Command, settings::LspSettings};
 
 const BINARY_NAME: &str = "fish-lsp";
@@ -33,6 +33,21 @@ impl Fish {
             .binary
             .and_then(|binary| binary.arguments)
             .unwrap_or_else(|| vec!["start".to_owned()])
+    }
+
+    /// Gets an array of environment variables to set when running the `fish-lsp` binary.
+    fn get_server_environment_variables(
+        language_server_id: &zed::LanguageServerId,
+        worktree: &zed::Worktree,
+    ) -> Vec<(String, String)> {
+        let mut env: HashMap<_, _> = worktree.shell_env().into_iter().collect();
+        env.extend(
+            Self::get_server_settings(language_server_id, worktree)
+                .binary
+                .and_then(|binary| binary.env)
+                .unwrap_or_default(),
+        );
+        env.into_iter().collect()
     }
 
     /// Install `fish-lsp` from NPM with the given version.
@@ -153,7 +168,7 @@ impl zed::Extension for Fish {
         Ok(Command {
             command: Fish::find_language_server_binary(self, language_server_id, worktree)?,
             args: Fish::get_server_arguments(language_server_id, worktree),
-            env: worktree.shell_env(),
+            env: Self::get_server_environment_variables(language_server_id, worktree),
         })
     }
 }
